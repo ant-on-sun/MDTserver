@@ -4,7 +4,7 @@ public class GetKeyFromMessage {
     private static String[] output;
 
     public static Integer parseKey(String s) {
-        Integer key = null;
+        Integer key = 1000;
         try {
             if (s.contains(":")){
                 output = s.split(":");

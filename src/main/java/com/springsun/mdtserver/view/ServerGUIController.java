@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class ServerGUIController {
 
 
-    private Server server = new Server();
-    private BooleanProperty started = new SimpleBooleanProperty(false);;
+    private Server server;// = new Server();
+    private BooleanProperty started = new SimpleBooleanProperty(false);
     private StringProperty statusMessageModel = new SimpleStringProperty("Server is not started");
 //    private Thread thread;
 //    volatile boolean flagToShutdownThread = false;
@@ -56,6 +56,7 @@ public class ServerGUIController {
     @FXML
     private void startHandler(ActionEvent actionEvent){
         if (started.get()) return;
+        server = new Server();
 
         Task<Void> task = new Task<Void>() {
             @Override
@@ -114,6 +115,7 @@ public class ServerGUIController {
         executorService.awaitTermination(10, TimeUnit.SECONDS);
         executorService.shutdownNow();
         Platform.exit();
+        System.exit(0);
     }
 
 }

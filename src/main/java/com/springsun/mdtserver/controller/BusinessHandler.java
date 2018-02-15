@@ -10,16 +10,29 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class BusinessHandler extends ChannelInboundHandlerAdapter{
     private final String appPassword = "password";
     private final String approved = "approved";
-    private Boolean appPasswordChecked, userLoginPasswordChecked;
+    private Boolean appPasswordChecked, userLoginPasswordChecked, hashChecked;
     private String in;
     private Integer key;
     private String firstValue;
     private String secondValue;
     private IHandler handler = new DBHandler();
+    private String inWithHash;
+    private int hash;
+    private String reply;
+    private ChannelHandlerContext context;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg){
-        in = (String)msg;
+        context = ctx;
+        inWithHash = (String) msg;
+        hash = GetHashOfMessage.parseHash(inWithHash);
+        in = GetMessageWithoutHash.getIncomingMessage(inWithHash);
+        hashChecked = CheckHash.checkHash(in, hash);
+        if (!hashChecked) {
+            reply = "10:Data were changed while transmitting to server. Server will do nothing. Try to send data later.";
+            write();
+            return;
+        }
         key = GetKeyFromMessage.parseKey(in);
         firstValue = GetFirstValue.parseFirstValue(in);
         secondValue = GetSecondValue.parseSecondValue(in);
@@ -27,7 +40,8 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
             case 1: //Check if connected client is a valid client of our application
                 if (appPassword.equalsIgnoreCase(firstValue)){
                     appPasswordChecked = true;
-                    ctx.writeAndFlush("1:" + approved);
+                    reply = "1:" + approved;
+                    write();
                 } else {
                     ctx.writeAndFlush("I don't know you");
                     ctx.close();
@@ -36,40 +50,81 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
             case 2: //Check login/password of user
                 if (appPasswordChecked){
                     if (!handler.loginExist(firstValue)){
-                        ctx.writeAndFlush("6:no such login");
+                        reply = "6:no such login";
+                        write();
                         break;
                     }
                     userLoginPasswordChecked = handler.userPasswordIsCorrect(secondValue);
                     if (userLoginPasswordChecked){
-                        ctx.writeAndFlush("3:login and password are correct");
+                        reply = "3:login and password are correct";
+                        write();
                     } else {
-                        ctx.writeAndFlush("2:incorrect password");
+                        reply = "2:incorrect password";
+                        write();
                     }
+                } else {
+                    ctx.close();
                 }
                 break;
             case 3: //Calculate the result and update DB
                 if (appPasswordChecked && userLoginPasswordChecked){
                     int distance = handler.calculateResult(firstValue, secondValue);
-                    ctx.writeAndFlush("4:" + distance);
+                    reply = "4:" + distance;
+                    write();
+                } else {
+                    ctx.close();
                 }
                 break;
             case 4: //Check new user login in DB
                 if (appPasswordChecked && handler.loginExist(firstValue)){
-                    ctx.writeAndFlush("5:login exist");
+                    reply = "5:login exist";
+                    write();
                 } else if (appPasswordChecked && !handler.loginExist(firstValue)){
-                    ctx.writeAndFlush("6:no such login");
+                    reply = "6:no such login";
+                    write();
+                } else {
+                    ctx.close();
                 }
                 break;
             case 5: //Create new user in DB
                 if (appPasswordChecked){
                     Boolean success = handler.createNewUser(firstValue, secondValue);
                     if (success){
-                        ctx.writeAndFlush("7:new user successfully created");
+                        reply = "7:new user successfully created";
+                        write();
                     } else {
-                        ctx.writeAndFlush("8:couldn't create new user");
+                        reply = "8:couldn't create new user";
+                        write();
                     }
+                } else {
+                    ctx.close();
                 }
+                break;
+            case 6: //Reset result to zero
+                if (appPasswordChecked && userLoginPasswordChecked){
+                    handler.setCurrentLatitude(-1000);
+                    handler.setCurrentLongitude(-1000);
+                    handler.setNewResult(0);
+                    Boolean success = handler.updateDB();
+                    if (success){
+                        int result = handler.getDistanceTraveledFromDB();
+                        reply = "4:" + result;
+                        write();
+                    } else {
+                        reply = "9:couldn't reset result to zero";
+                        write();
+                    }
+                } else {
+                    ctx.close();
+                }
+                break;
+            default:
+                reply = "11:invalid key protocol";
+                write();
+                break;
+
         }
+
     }
 
     @Override
@@ -82,6 +137,13 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
         //Close the connection when an exception is raised
         cause.printStackTrace();
         ctx.close();
+    }
+
+    //Add hashCode to message, write to channel and flush
+    private void write(){
+        int h = reply.hashCode();
+        reply = reply + ":" + h;
+        context.writeAndFlush(reply);
     }
 
 }

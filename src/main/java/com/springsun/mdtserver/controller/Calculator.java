@@ -13,10 +13,20 @@ public class Calculator {
             int distanceAlreadyTraveled
     ){
         int result = 0;
-        double d;
-        d = acos(sin(lastLatitude) * sin(currentLatitude) +
-                cos(lastLatitude) * cos(currentLatitude) * cos(lastLongitude - currentLongitude));
-        result = (int)round(d * EARTHRADIUS) + distanceAlreadyTraveled;
+        double a, b, arctan;
+
+        //Coordinates to radians
+        double latitude1 = lastLatitude * Math.PI / 180;
+        double longitude1 = lastLongitude * Math.PI / 180;
+        double latitude2 = currentLatitude * Math.PI / 180;
+        double longitude2 = currentLongitude * Math.PI / 180;
+
+        double deltaLong = longitude2 - longitude1;
+        a = sqrt(pow(cos(latitude2) * sin(deltaLong), 2)
+                + pow(cos(latitude1) * sin(latitude2) - sin(latitude1) * cos(latitude2) * cos(deltaLong), 2));
+        b = sin(latitude1) * sin(latitude2) + cos(latitude1) * cos(latitude2) * cos(deltaLong);
+        arctan = atan(a/b);
+        result = (int)round(arctan * EARTHRADIUS) + distanceAlreadyTraveled;
         return result;
     }
 }

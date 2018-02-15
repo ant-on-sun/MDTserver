@@ -16,7 +16,21 @@ public class DBHandler implements IHandler {
 
     private String userLogin, userPassword;
     private float lastLatitude, currentLatitude, lastLongitude, currentLongitude;
-    private int distanceAlreadyTraveled, newResult;
+    private int distanceAlreadyTraveled;
+
+    public void setCurrentLatitude(float currentLatitude) {
+        this.currentLatitude = currentLatitude;
+    }
+
+    public void setCurrentLongitude(float currentLongitude) {
+        this.currentLongitude = currentLongitude;
+    }
+
+    public void setNewResult(int newResult) {
+        this.newResult = newResult;
+    }
+
+    private int newResult;
 
     public DBHandler() {
     }
@@ -55,7 +69,8 @@ public class DBHandler implements IHandler {
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()){
                 String passwordFromDB = resultSet.getString("password");
-                if (passwordFromDB.contentEquals(userPassword.subSequence(0, userPassword.length() - 1))){
+                //passwordFromDB.contentEquals(userPassword.subSequence(0, userPassword.length() - 1))
+                if (passwordFromDB.equals(userPassword)){
                     passwordIsCorrect = true;
                 }
             } else {
@@ -111,7 +126,7 @@ public class DBHandler implements IHandler {
                 Statement statement = connectionToDB.createStatement()
         ){
             String strSelect = "select username, distance_traveled, latitude, longitude from " + tableDB +
-                    " where login='" + userLogin + "'";
+                    " where username='" + userLogin + "'";
             System.out.println("The SQL query is: " + strSelect); // Echo for debugging
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()){
@@ -120,6 +135,8 @@ public class DBHandler implements IHandler {
                 lastLongitude = resultSet.getFloat("longitude");
                 if (lastLatitude < -999 || lastLongitude < -999) {
                     newResult = 0;
+                } else if (currentLatitude > 999 || currentLongitude > 999) {
+                    return distanceAlreadyTraveled;
                 } else {
                     newResult = Calculator.calculate(lastLatitude, lastLongitude, currentLatitude, currentLongitude,
                             distanceAlreadyTraveled);
@@ -136,7 +153,29 @@ public class DBHandler implements IHandler {
     }
 
     @Override
-    public void updateDB() {
+    public int getDistanceTraveledFromDB(){
+        try (
+                Connection connectionToDB = DriverManager.getConnection(
+                        sqlURL + "/" + nameOfDB + "?useSSL=false", usernameDB, passwordDB);
+                Statement statement = connectionToDB.createStatement()
+        ) {
+            String strSelect = "select username, distance_traveled, latitude, longitude from " + tableDB +
+                    " where username='" + userLogin + "'";
+            System.out.println("The SQL query is: " + strSelect); // Echo for debugging
+            ResultSet resultSet = statement.executeQuery(strSelect);
+            if (resultSet.next()) {
+                distanceAlreadyTraveled = resultSet.getInt("distance_traveled");
+            }else {
+                throw new SQLException("can't find userlogin " + userLogin + " in DB " + nameOfDB + " in table " + tableDB);
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return distanceAlreadyTraveled;
+    }
+
+    @Override
+    public boolean updateDB() {
         try (
                 Connection connectionToDB = DriverManager.getConnection(
                         sqlURL + "/" + nameOfDB + "?useSSL=false", usernameDB, passwordDB);
@@ -145,11 +184,13 @@ public class DBHandler implements IHandler {
             String strUpdate = "update " + tableDB + " set distance_traveled = " + newResult +
                     ", latitude = " + currentLatitude +
                     ", longitude = " + currentLongitude +
-                    " where login='" + userLogin + "'";
+                    " where username='" + userLogin + "'";
             System.out.println("The SQL query is: " + strUpdate); // Echo for debugging
             statement.executeUpdate(strUpdate);
         }catch (SQLException e){
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }

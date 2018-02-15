@@ -14,6 +14,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 public class Server {
     static final boolean SSL = System.getProperty("ssl") != null;
+    static final String HOST = "127.0.0.1";
     static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
     EventLoopGroup boosGroup = new NioEventLoopGroup();
     EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -40,7 +41,7 @@ public class Server {
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new ServerSocketInitializer(sslCtx));
             //Start the server
-            channelFuture = bootstrap.bind("127.0.0.1", PORT).sync();
+            channelFuture = bootstrap.bind(HOST, PORT).sync();
 
             // Wait until the server socket is closed
             channelFuture.channel().closeFuture().sync();
