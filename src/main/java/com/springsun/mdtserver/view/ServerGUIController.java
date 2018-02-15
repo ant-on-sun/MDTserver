@@ -23,15 +23,14 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ServerGUIController {
-
-
-    private Server server;// = new Server();
+    private static Logger log = Logger.getLogger(ServerGUIController.class.getName());
+    private Server server;
     private BooleanProperty started = new SimpleBooleanProperty(false);
     private StringProperty statusMessageModel = new SimpleStringProperty("Server is not started");
-//    private Thread thread;
-//    volatile boolean flagToShutdownThread = false;
     ExecutorService executorService = Executors.newFixedThreadPool(1);
 
     @FXML
@@ -74,13 +73,11 @@ public class ServerGUIController {
                 alert.setContentText( exc.getMessage() );
                 alert.showAndWait();
                 started.set(false);
+                log.log(Level.WARNING, "Couldn't start server.");
             }
         };
-        //thread = new Thread(task);
-        //thread.setDaemon(true);
         executorService.submit(task);
         executorService.execute(task);
-        //thread.start();
         started.set(true);
         statusMessageModel.setValue("Server is working");
     }
@@ -104,7 +101,8 @@ public class ServerGUIController {
 
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.WARNING, "IOException in GUI shutdownHandler(): ", e);
+            //e.printStackTrace();
         }
     }
 

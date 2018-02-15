@@ -1,8 +1,12 @@
 package com.springsun.mdtserver.controller;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import static java.lang.Math.*;
 
 public class Calculator {
+    private static Logger log = Logger.getLogger(Calculator.class.getName());
     private static final int EARTHRADIUS = 6371302;
 
     public static int calculate(
@@ -27,6 +31,7 @@ public class Calculator {
         b = sin(latitude1) * sin(latitude2) + cos(latitude1) * cos(latitude2) * cos(deltaLong);
         arctan = atan(a/b);
         result = (int)round(arctan * EARTHRADIUS) + distanceAlreadyTraveled;
+        log.log(Level.FINE, "Result was calculated.");
         return result;
     }
 }

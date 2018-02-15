@@ -12,7 +12,11 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Server {
+    private static Logger log = Logger.getLogger(Server.class.getName());
     static final boolean SSL = System.getProperty("ssl") != null;
     static final String HOST = "127.0.0.1";
     static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
@@ -38,7 +42,7 @@ public class Server {
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.SO_BACKLOG, 100)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .handler(new LoggingHandler(LogLevel.INFO))
+                    .handler(new LoggingHandler(LogLevel.WARN))
                     .childHandler(new ServerSocketInitializer(sslCtx));
             //Start the server
             channelFuture = bootstrap.bind(HOST, PORT).sync();
@@ -59,7 +63,8 @@ public class Server {
             workerGroup.shutdownGracefully().sync();
             channelFuture.channel().closeFuture().sync(); //close port
         } catch (InterruptedException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "Exception in serverShutdown(): ", e);
+            //e.printStackTrace();
         }
     }
 }

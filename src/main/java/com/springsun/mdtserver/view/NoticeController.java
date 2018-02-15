@@ -11,7 +11,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class NoticeController {
+    private static Logger log = Logger.getLogger(NoticeController.class.getName());
     Server server;
     private BooleanProperty started;
     private StringProperty statusMessageModel;
@@ -52,6 +56,7 @@ public class NoticeController {
                 alert.setContentText( exc.getMessage() );
                 alert.showAndWait();
                 started.set(true);
+                log.log(Level.WARNING, "Couldn't shutdown server.");
             }
         };
 

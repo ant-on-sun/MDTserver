@@ -4,8 +4,11 @@ import com.springsun.mdtserver.controller.Calculator;
 import com.springsun.mdtserver.model.IHandler;
 
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DBHandler implements IHandler {
+    private static Logger log = Logger.getLogger(DBHandler.class.getName());
     private static String sqlURL = "jdbc:mysql://localhost:3306";
     private static String nameOfDB = "map_users";
     private static String tableDB = "musers";
@@ -14,9 +17,13 @@ public class DBHandler implements IHandler {
     private static String usernameDB = "user1";
     private static String passwordDB = "Aa1a2a3a4a5a6a7";
 
-    private String userLogin, userPassword;
+    private String userLogin;
+    private String userPassword;
     private float lastLatitude, currentLatitude, lastLongitude, currentLongitude;
     private int distanceAlreadyTraveled;
+    private String strSelect;
+    private String strInsert;
+    private String strUpdate;
 
     public void setCurrentLatitude(float currentLatitude) {
         this.currentLatitude = currentLatitude;
@@ -43,14 +50,16 @@ public class DBHandler implements IHandler {
                         sqlURL + "/" + nameOfLogPassDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            String strSelect = "select login from " + tableLogPass + " where login='" + userLogin + "'";
-            System.out.println("The SQL query is: " + strSelect); // Echo for debugging
+            strSelect = "select login from " + tableLogPass + " where login='" + userLogin + "'";
+            //System.out.println("The SQL query is: " + strSelect); // Echo for debugging
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()){
                 return true;
             }
         }catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in loginExist(). The SQL query is: " + strSelect
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
         }
         return false;
     }
@@ -64,12 +73,11 @@ public class DBHandler implements IHandler {
                         sqlURL + "/" + nameOfLogPassDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            String strSelect = "select login, password from " + tableLogPass + " where login='" + userLogin + "'";
-            System.out.println("The SQL query is: " + strSelect); // Echo for debugging
+            strSelect = "select login, password from " + tableLogPass + " where login='" + userLogin + "'";
+            //System.out.println("The SQL query is: " + strSelect); // Echo for debugging
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()){
                 String passwordFromDB = resultSet.getString("password");
-                //passwordFromDB.contentEquals(userPassword.subSequence(0, userPassword.length() - 1))
                 if (passwordFromDB.equals(userPassword)){
                     passwordIsCorrect = true;
                 }
@@ -77,7 +85,9 @@ public class DBHandler implements IHandler {
                 throw new SQLException("Can't find userlogin " + userLogin + " in DB");
             }
         } catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in userPasswordIsCorrect(). The SQL query is: " + strSelect
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
         }
         return passwordIsCorrect;
     }
@@ -90,24 +100,28 @@ public class DBHandler implements IHandler {
                         sqlURL + "/" + nameOfLogPassDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            String strInsert = "insert into " + tableLogPass + " (id, login, password) values (null, '" +
+            strInsert = "insert into " + tableLogPass + " (id, login, password) values (null, '" +
                     login + "', '" + password + "')";
-            System.out.println("The SQL query is: " + strInsert); // Echo for debugging
+            //System.out.println("The SQL query is: " + strInsert); // Echo for debugging
             statement.executeUpdate(strInsert);
         } catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in createNewUser(). The SQL query is: " + strInsert
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
         }
         try (
                 Connection connectionToDB = DriverManager.getConnection(
                         sqlURL + "/" + nameOfDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            String strInsert = "insert into " + tableDB + " (id, username, distance_traveled, latitude, longitude) " +
+            strInsert = "insert into " + tableDB + " (id, username, distance_traveled, latitude, longitude) " +
                     "values (null, '" + login + "', 0, -1000, -1000)";
             System.out.println("The SQL query is: " + strInsert); // Echo for debugging
             statement.executeUpdate(strInsert);
         } catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in createNewUser(). The SQL query is: " + strInsert
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
         }
         return true;
     }
@@ -118,16 +132,17 @@ public class DBHandler implements IHandler {
             currentLatitude = Float.parseFloat(currentLat);
             currentLongitude = Float.parseFloat(currentLong);
         } catch (NumberFormatException e) {
-            e.printStackTrace();
+            log.log(Level.WARNING, "NumberFormatException in calculateResult(): ", e);
+            //e.printStackTrace();
         }
         try (
                 Connection connectionToDB = DriverManager.getConnection(
                         sqlURL + "/" + nameOfDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            String strSelect = "select username, distance_traveled, latitude, longitude from " + tableDB +
+            strSelect = "select username, distance_traveled, latitude, longitude from " + tableDB +
                     " where username='" + userLogin + "'";
-            System.out.println("The SQL query is: " + strSelect); // Echo for debugging
+            //System.out.println("The SQL query is: " + strSelect); // Echo for debugging
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()){
                 distanceAlreadyTraveled = resultSet.getInt("distance_traveled");
@@ -146,7 +161,9 @@ public class DBHandler implements IHandler {
                 throw new SQLException("can't find userlogin " + userLogin + " in DB " + nameOfDB + " in table " + tableDB);
             }
         } catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in calculateResult(). The SQL query is: " + strSelect
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
         }
         updateDB();
         return newResult;
@@ -159,9 +176,9 @@ public class DBHandler implements IHandler {
                         sqlURL + "/" + nameOfDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ) {
-            String strSelect = "select username, distance_traveled, latitude, longitude from " + tableDB +
+            strSelect = "select username, distance_traveled, latitude, longitude from " + tableDB +
                     " where username='" + userLogin + "'";
-            System.out.println("The SQL query is: " + strSelect); // Echo for debugging
+            //System.out.println("The SQL query is: " + strSelect); // Echo for debugging
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()) {
                 distanceAlreadyTraveled = resultSet.getInt("distance_traveled");
@@ -169,7 +186,9 @@ public class DBHandler implements IHandler {
                 throw new SQLException("can't find userlogin " + userLogin + " in DB " + nameOfDB + " in table " + tableDB);
             }
         } catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in calculateResult(). The SQL query is: " + strSelect
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
         }
         return distanceAlreadyTraveled;
     }
@@ -181,14 +200,16 @@ public class DBHandler implements IHandler {
                         sqlURL + "/" + nameOfDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            String strUpdate = "update " + tableDB + " set distance_traveled = " + newResult +
+            strUpdate = "update " + tableDB + " set distance_traveled = " + newResult +
                     ", latitude = " + currentLatitude +
                     ", longitude = " + currentLongitude +
                     " where username='" + userLogin + "'";
-            System.out.println("The SQL query is: " + strUpdate); // Echo for debugging
+            //System.out.println("The SQL query is: " + strUpdate); // Echo for debugging
             statement.executeUpdate(strUpdate);
         }catch (SQLException e){
-            e.printStackTrace();
+            log.log(Level.WARNING, "SQLException in calculateResult(). The SQL query is: " + strUpdate
+                    + "\n The exception is: ", e);
+            //e.printStackTrace();
             return false;
         }
         return true;
