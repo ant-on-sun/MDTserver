@@ -11,6 +11,9 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.StringProperty;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +26,13 @@ public class Server {
     EventLoopGroup boosGroup = new NioEventLoopGroup();
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     ChannelFuture channelFuture;
+    private BooleanProperty started;
+    private StringProperty statusMessageModel;
+
+    public Server(BooleanProperty started, StringProperty statusMessageModel) {
+        this.started = started;
+        this.statusMessageModel = statusMessageModel;
+    }
 
     public void serverStart() throws Exception{
         //Configure SSL
@@ -47,6 +57,11 @@ public class Server {
             //Start the server
             channelFuture = bootstrap.bind(HOST, PORT).sync();
 
+            Platform.runLater(() -> {
+                started.set(true);
+                statusMessageModel.setValue("Server is working");
+            });
+
             // Wait until the server socket is closed
             channelFuture.channel().closeFuture().sync();
         } finally {
@@ -62,6 +77,10 @@ public class Server {
             boosGroup.shutdownGracefully().sync();
             workerGroup.shutdownGracefully().sync();
             channelFuture.channel().closeFuture().sync(); //close port
+            Platform.runLater(() -> {
+                started.set(false);
+                statusMessageModel.setValue("Server is not started");
+            });
         } catch (InterruptedException e){
             log.log(Level.WARNING, "Exception in serverShutdown(): ", e);
             //e.printStackTrace();

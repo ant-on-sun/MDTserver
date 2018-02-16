@@ -55,7 +55,7 @@ public class ServerGUIController {
     @FXML
     private void startHandler(ActionEvent actionEvent){
         if (started.get()) return;
-        server = new Server();
+        server = new Server(started, statusMessageModel);
 
         Task<Void> task = new Task<Void>() {
             @Override
@@ -78,8 +78,6 @@ public class ServerGUIController {
         };
         executorService.submit(task);
         executorService.execute(task);
-        started.set(true);
-        statusMessageModel.setValue("Server is working");
     }
 
     @FXML

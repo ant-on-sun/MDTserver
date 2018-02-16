@@ -61,8 +61,6 @@ public class NoticeController {
         };
 
         new Thread(task).start();
-        started.set(false);
-        statusMessageModel.setValue("Server is not started");
         Stage stage = (Stage) yesButton.getScene().getWindow();
         stage.close();
     }

@@ -148,10 +148,10 @@ public class DBHandler implements IHandler {
                 distanceAlreadyTraveled = resultSet.getInt("distance_traveled");
                 lastLatitude = resultSet.getFloat("latitude");
                 lastLongitude = resultSet.getFloat("longitude");
-                if (lastLatitude < -999 || lastLongitude < -999) {
-                    newResult = 0;
-                } else if (currentLatitude > 999 || currentLongitude > 999) {
+                if (currentLatitude > 999 || currentLongitude > 999) {
                     return distanceAlreadyTraveled;
+                } else if (lastLatitude < -999 || lastLongitude < -999) {
+                    newResult = 0;
                 } else {
                     newResult = Calculator.calculate(lastLatitude, lastLongitude, currentLatitude, currentLongitude,
                             distanceAlreadyTraveled);

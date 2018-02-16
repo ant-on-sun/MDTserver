@@ -43,7 +43,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
         secondValue = GetSecondValue.parseSecondValue(in);
         switch (key){
             case 1: //Check if connected client is a valid client of our application
-                if (appPassword.equalsIgnoreCase(firstValue)){
+                if (appPassword.equals(firstValue)){
                     appPasswordChecked = true;
                     reply = "1:" + approved;
                     write();
@@ -142,10 +142,23 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
                     ctx.close();
                 }
                 break;
-            default:
-                reply = "11:invalid key protocol";
-                write();
-                log.log(Level.INFO, "Invalid key protocol.");
+            case 7: //Invalid key protocol was received on client
+                if (appPasswordChecked){
+                    log.log(Level.WARNING, "Invalid key protocol was received on client.");
+                } else {
+                    log.log(Level.INFO, "Application password was not provided. Channel will be closed.");
+                    ctx.close();
+                }
+                break;
+            default: //Invalid key protocol
+                if (appPasswordChecked){
+                    reply = "11:invalid key protocol";
+                    write();
+                    log.log(Level.INFO, "Invalid key protocol.");
+                } else {
+                    log.log(Level.INFO, "Application password was not provided. Channel will be closed.");
+                    ctx.close();
+                }
                 break;
 
         }

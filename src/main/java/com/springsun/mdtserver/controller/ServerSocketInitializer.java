@@ -22,7 +22,7 @@ public class ServerSocketInitializer extends ChannelInitializer<SocketChannel> {
         if (sslContext != null){
             pipeline.addLast(sslContext.newHandler(socketChannel.alloc()));
         }
-        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+        //pipeline.addLast(new LoggingHandler(LogLevel.WARN));
         pipeline.addLast(
                 new ObjectEncoder(),
                 new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
