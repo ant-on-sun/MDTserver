@@ -85,6 +85,13 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
             case 3: //Calculate the result and update DB
                 if (appPasswordChecked && userLoginPasswordChecked){
                     int distance = handler.calculateResult(firstValue, secondValue);
+                    if (distance < 0){
+                        log.log(Level.INFO, "NumberFormatException in calculateResult(). Ask client to re-send data");
+                        reply = "10:NumberFormatException. Couldn't parse number(s). Ask client to re-send data.";
+                        write();
+                        errorCounter++;
+                        break;
+                    }
                     reply = "4:" + distance;
                     write();
                     log.log(Level.FINE, "Sending calculated result.");

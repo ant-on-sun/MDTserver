@@ -127,13 +127,14 @@ public class DBHandler implements IHandler {
     }
 
     @Override
-    public int calculateResult(String currentLat, String currentLong) {
+    public int calculateResult(String currentLat, String currentLong){
         try {
             currentLatitude = Float.parseFloat(currentLat);
             currentLongitude = Float.parseFloat(currentLong);
         } catch (NumberFormatException e) {
             log.log(Level.WARNING, "NumberFormatException in calculateResult(): ", e);
             //e.printStackTrace();
+            return -1;
         }
         try (
                 Connection connectionToDB = DriverManager.getConnection(

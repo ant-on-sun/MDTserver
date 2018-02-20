@@ -45,7 +45,6 @@ public class Server {
         }
 
         //Configure the server
-
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(boosGroup, workerGroup)
