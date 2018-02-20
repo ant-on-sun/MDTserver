@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 @Sharable
 public class BusinessHandler extends ChannelInboundHandlerAdapter{
+
     private static Logger log = Logger.getLogger(BusinessHandler.class.getName());
     private final String appPassword = "password";
     private final String approved = "approved";
@@ -24,6 +25,9 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
     private int hash;
     private String reply;
     private ChannelHandlerContext context;
+    private final int maxValueOfKeyOnClient = 11;
+    private int errorCounter = 0;
+    private final int maxQuantityOfErrors = 100;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg){
@@ -33,7 +37,8 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
         in = GetMessageWithoutHash.getIncomingMessage(inWithHash);
         hashChecked = CheckHash.checkHash(in, hash);
         if (!hashChecked) {
-            reply = "10:Data were changed while transmitting to server. Server will do nothing. Try to send data later.";
+            reply = "10:Data were changed while transmitting to server. Server will do nothing. " +
+                    "Try to send data later. Received message = " + in + " Expected hash:" + in.hashCode();
             write();
             log.log(Level.WARNING, "Hash sum of incoming message is not valid. Server will do nothing.");
             return;
@@ -145,6 +150,30 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
             case 7: //Invalid key protocol was received on client
                 if (appPasswordChecked){
                     log.log(Level.WARNING, "Invalid key protocol was received on client.");
+                    key = GetKeyFromMessage.parseKey(reply);
+                    if (key < 1 || key > maxValueOfKeyOnClient) {
+                        log.log(Level.WARNING, "Invalid key = " + key
+                                + " was created on server. Closing connection.");
+                        ctx.close();
+                    } else {
+                        log.log(Level.WARNING, "The key on server is fine, trying to re-send data.");
+                        write();
+                    }
+                } else {
+                    log.log(Level.INFO, "Application password was not provided. Channel will be closed.");
+                    ctx.close();
+                }
+                break;
+            case 8: //Data were changed while transmitting from server. Wrong hashCode.
+                if (appPasswordChecked){
+                    if (errorCounter < maxQuantityOfErrors){
+                        log.log(Level.INFO, "Wrong hashCode in message from server. Trying to re-send data.");
+                        write();
+                    } else {
+                        log.log(Level.INFO, "Too many errors in session. Channel will be closed.");
+                        ctx.close();
+                    }
+                    errorCounter++;
                 } else {
                     log.log(Level.INFO, "Application password was not provided. Channel will be closed.");
                     ctx.close();
@@ -152,8 +181,14 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
                 break;
             default: //Invalid key protocol
                 if (appPasswordChecked){
-                    reply = "11:invalid key protocol";
-                    write();
+                    if (errorCounter < maxQuantityOfErrors){
+                        errorCounter++;
+                        reply = "11:invalid key protocol";
+                        write();
+                    } else {
+                        log.log(Level.INFO, "Too many errors in session. Channel will be closed.");
+                        ctx.close();
+                    }
                     log.log(Level.INFO, "Invalid key protocol.");
                 } else {
                     log.log(Level.INFO, "Application password was not provided. Channel will be closed.");
@@ -180,10 +215,41 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
     }
 
     //Add hashCode to message, write to channel and flush
-    private void write(){
+    public void write(){
         int h = reply.hashCode();
         reply = reply + ":" + h;
         context.writeAndFlush(reply);
+    }
+
+    //For tests
+    public void setHandler(IHandler handler) {
+        this.handler = handler;
+    }
+
+    //For tests
+    public Boolean getAppPasswordChecked() {
+        return appPasswordChecked;
+    }
+
+    //For tests
+    public String getReply() {
+        return reply;
+    }
+
+    //For tests
+    public void setReply(String s){
+        reply = s;
+    }
+
+    //For tests
+    public void setErrorCounter(int errorCounter) {
+        this.errorCounter = errorCounter;
+    }
+
+
+    //For tests
+    public int getErrorCounter() {
+        return errorCounter;
     }
 
 }
