@@ -171,10 +171,11 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
                     ctx.close();
                 }
                 break;
-            case 8: //Data were changed while transmitting from server. Wrong hashCode.
+            case 8: //Data were changed while transmitting from server. Wrong hashCode. (Or Exception caught on client)
                 if (appPasswordChecked){
                     if (errorCounter < maxQuantityOfErrors){
-                        log.log(Level.INFO, "Wrong hashCode in message from server. Trying to re-send data.");
+                        log.log(Level.INFO, "Wrong hashCode in message from server " +
+                                "(or Exception caught on client). Trying to re-send data.");
                         write();
                     } else {
                         log.log(Level.INFO, "Too many errors in session. Channel will be closed.");
@@ -215,7 +216,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
         errorCounter++;
-        log.log(Level.SEVERE, "Exception caught in method exceptionCaught() in BuisinessHandler: ",
+        log.log(Level.SEVERE, "Exception caught in method exceptionCaught() in Server's BuisinessHandler: ",
                 cause.getMessage());
         if (errorCounter > maxQuantityOfErrors){
             //Close the connection when an exception is raised

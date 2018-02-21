@@ -16,6 +16,7 @@ public class BusinessHandlerTest {
     private ChannelHandlerContext ctxmock;
     private IHandler handlerMock;
     private Object msg;
+    private final String appPassword = "password";
 
     @Before
     public void setUp() throws Exception {
@@ -23,10 +24,9 @@ public class BusinessHandlerTest {
         ctxmock = mock(ChannelHandlerContext.class);
         handlerMock = mock(DBHandler.class);
         bHandler.setHandler(handlerMock);
-        String appPassword = "password";
+
         msg = "1:" + appPassword;
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         bHandler.channelRead(ctxmock, msg);
     }
 
@@ -54,8 +54,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest1b() {
         msg = "1:passworD";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         bHandler.channelRead(ctxmock, msg);
         verify(ctxmock, times(1)).close();
     }
@@ -63,8 +62,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest2a() {
         msg = "2:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(true);
         when(handlerMock.userPasswordIsCorrect(anyString())).thenReturn(true);
         bHandler.channelRead(ctxmock, msg);
@@ -83,8 +81,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest2b() {
         msg = "2:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(true);
         when(handlerMock.userPasswordIsCorrect(anyString())).thenReturn(false);
         bHandler.channelRead(ctxmock, msg);
@@ -103,8 +100,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest2c() {
         msg = "2:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(false);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -122,15 +118,13 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest3a() {
         msg = "2:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(true);
         when(handlerMock.userPasswordIsCorrect(anyString())).thenReturn(true);
         bHandler.channelRead(ctxmock, msg);
 
         msg = "3:firstValue:secondValue";
-        h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.calculateResult(anyString(), anyString())).thenReturn(100);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -148,8 +142,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest4a() {
         msg = "4:userLogin";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(true);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -167,8 +160,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest4b() {
         msg = "4:userLogin";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(false);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -186,8 +178,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest5a() {
         msg = "5:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.createNewUser(anyString(), anyString())).thenReturn(true);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -205,8 +196,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest5b() {
         msg = "5:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.createNewUser(anyString(), anyString())).thenReturn(false);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -224,15 +214,13 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest6a() {
         msg = "2:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(true);
         when(handlerMock.userPasswordIsCorrect(anyString())).thenReturn(true);
         bHandler.channelRead(ctxmock, msg);
 
         msg = "6:0";
-        h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.updateDB()).thenReturn(true);
         when(handlerMock.getDistanceTraveledFromDB()).thenReturn(0);
         bHandler.channelRead(ctxmock, msg);
@@ -251,15 +239,13 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest6b() {
         msg = "2:userLogin:userPassword";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.loginExist(anyString())).thenReturn(true);
         when(handlerMock.userPasswordIsCorrect(anyString())).thenReturn(true);
         bHandler.channelRead(ctxmock, msg);
 
         msg = "6:0";
-        h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         when(handlerMock.updateDB()).thenReturn(false);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -277,8 +263,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest7a() {
         msg = "7:invalid key protocol was received on client";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         bHandler.setReply("100:sometext");
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -296,8 +281,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest7b() {
         msg = "7:invalid key protocol was received on client";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         bHandler.setReply("5:sometext");
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -316,8 +300,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest8a() {
         msg = "8:Data were changed while transmitting from server. Wrong hashCode.";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         bHandler.setErrorCounter(1);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -337,8 +320,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTest8b() {
         msg = "8:Data were changed while transmitting from server. Wrong hashCode.";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         bHandler.setErrorCounter(300);
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -357,8 +339,7 @@ public class BusinessHandlerTest {
     @Test
     public void channelReadTestDefaultA() {
         msg = "100:invalid key protocol";
-        int h = msg.hashCode();
-        msg = (Object)(msg + ":" + h);
+        prepareMessage();
         //bHandler.setReply("5:sometext");
         bHandler.channelRead(ctxmock, msg);
         verify(handlerMock, times(0)).getDistanceTraveledFromDB();
@@ -391,7 +372,7 @@ public class BusinessHandlerTest {
         verify(ctxmock, times(0)).close();
         verify(ctxmock, times(2)).writeAndFlush(anyObject());
         assertEquals("10:Data were changed while transmitting to server. Server will do nothing. " +
-                "Try to send data later. Received message = 2:userLogin:userPassword Expected hash:1199421290",
+                "Try to send data later. Received message = 2:userLogin:userPassword Expected hash = 1199421290",
                 getMessageWithoutHash(bHandler.getReply()));
     }
 
@@ -403,4 +384,10 @@ public class BusinessHandlerTest {
             throw new StringIndexOutOfBoundsException("can't find the delimiter (:)");
         }
     }
+
+    private void prepareMessage(){
+        int h = msg.hashCode();
+        msg = (Object)(msg + ":" + h);
+    }
+
 }
