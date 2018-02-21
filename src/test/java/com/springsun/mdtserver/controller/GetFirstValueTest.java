@@ -35,4 +35,10 @@ public class GetFirstValueTest {
         String s = "2firstValuesecondValue";
         String firstValue = GetFirstValue.parseFirstValue(s);
     }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void parseFirstValueTest4(){
+        String s = "::";
+        String firstValue = GetFirstValue.parseFirstValue(s);
+    }
 }

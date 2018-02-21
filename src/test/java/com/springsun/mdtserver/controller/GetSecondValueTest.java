@@ -36,4 +36,12 @@ public class GetSecondValueTest {
         GetSecondValue.parseSecondValue(s);
 
     }
+
+    @Test
+    public void parseSecondValueTest4() {
+        String s = "::::";
+        String result = GetSecondValue.parseSecondValue(s);
+        assertEquals(null, result);
+    }
+
 }

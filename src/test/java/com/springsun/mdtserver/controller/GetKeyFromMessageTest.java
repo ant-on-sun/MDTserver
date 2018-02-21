@@ -29,8 +29,14 @@ public class GetKeyFromMessageTest {
         GetKeyFromMessage.parseKey(s);
     }
 
-    @Test
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void parseKeyTest3(){
+        String s = "::";
+        GetKeyFromMessage.parseKey(s);
+    }
+
+    @Test
+    public void parseKeyTest4(){
         String s = "2sss:sometext";
         int result = GetKeyFromMessage.parseKey(s);
         assertEquals(1000, result);

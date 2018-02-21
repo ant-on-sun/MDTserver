@@ -27,4 +27,10 @@ public class GetHashOfMessageTest {
         String s = "1some text1222";
         GetHashOfMessage.parseHash(s);
     }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void parseHashTest3(){
+        String s = "::";
+        GetHashOfMessage.parseHash(s);
+    }
 }

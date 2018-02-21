@@ -38,7 +38,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
         hashChecked = CheckHash.checkHash(in, hash);
         if (!hashChecked) {
             reply = "10:Data were changed while transmitting to server. Server will do nothing. " +
-                    "Try to send data later. Received message = " + in + " Expected hash:" + in.hashCode();
+                    "Try to send data later. Received message = " + in + " Expected hash = " + in.hashCode();
             write();
             log.log(Level.WARNING, "Hash sum of incoming message is not valid. Server will do nothing.");
             return;
@@ -214,11 +214,17 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter{
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
-        //Close the connection when an exception is raised
+        errorCounter++;
         log.log(Level.SEVERE, "Exception caught in method exceptionCaught() in BuisinessHandler: ",
                 cause.getMessage());
-        //cause.printStackTrace();
-        ctx.close();
+        if (errorCounter > maxQuantityOfErrors){
+            //Close the connection when an exception is raised
+            //cause.printStackTrace();
+            log.log(Level.INFO, "Too many errors in session. Channel will be closed.");
+            ctx.close();
+        }
+        reply = "10:Exception caught in method exceptionCaught() in BuisinessHandler. Ask client to re-send data.";
+        write();
     }
 
     //Add hashCode to message, write to channel and flush

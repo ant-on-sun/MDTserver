@@ -28,4 +28,5 @@ public class GetMessageWithoutHashTest {
         String s = "1some message333";
         GetMessageWithoutHash.getIncomingMessage(s);
     }
+
 }
