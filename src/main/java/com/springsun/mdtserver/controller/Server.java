@@ -20,18 +20,20 @@ import java.util.logging.Logger;
 
 public class Server {
     private static Logger log = Logger.getLogger(Server.class.getName());
-    static final boolean SSL = System.getProperty("ssl") != null;
-    static final String HOST = "127.0.0.1";
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
-    EventLoopGroup boosGroup = new NioEventLoopGroup();
-    EventLoopGroup workerGroup = new NioEventLoopGroup();
-    ChannelFuture channelFuture;
+    private static final boolean SSL = System.getProperty("ssl") != null;
+    private static String host;
+    private static int port;
+    private EventLoopGroup boosGroup = new NioEventLoopGroup();
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private ChannelFuture channelFuture;
     private BooleanProperty started;
     private StringProperty statusMessageModel;
 
-    public Server(BooleanProperty started, StringProperty statusMessageModel) {
+    public Server(BooleanProperty started, StringProperty statusMessageModel, String host, int port) {
         this.started = started;
         this.statusMessageModel = statusMessageModel;
+        Server.host = host;
+        Server.port = port;
     }
 
     public void serverStart() throws Exception{
@@ -54,7 +56,7 @@ public class Server {
                     .handler(new LoggingHandler(LogLevel.WARN))
                     .childHandler(new ServerSocketInitializer(sslCtx));
             //Start the server
-            channelFuture = bootstrap.bind(HOST, PORT).sync();
+            channelFuture = bootstrap.bind(Server.host, Server.port).sync();
 
             Platform.runLater(() -> {
                 started.set(true);

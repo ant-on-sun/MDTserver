@@ -26,7 +26,6 @@ public class CheckHashTest {
     @Test
     public void checkHashTest2() {
         String s = "1:sometext";
-        System.out.println(s.hashCode());
         int h = -1286574774;
         assertTrue(CheckHash.checkHash(s, h));
     }

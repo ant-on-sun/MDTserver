@@ -1,19 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="270.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.springsun.mdtserver.view.ServerGUIController">
    <children>
-      <ButtonBar layoutY="175.0" prefHeight="96.0" prefWidth="372.0">
+      <ButtonBar layoutY="212.0" prefHeight="59.0" prefWidth="372.0">
         <buttons>
           <Button fx:id="startServer" mnemonicParsing="false" onAction="#startHandler" text="Start server" />
             <Button fx:id="shutdownServer" layoutX="135.0" layoutY="18.0" mnemonicParsing="false" onAction="#shutdownHandler" text="Shutdown server" />
             <Button fx:id="shutdownApp" layoutX="30.0" layoutY="46.0" mnemonicParsing="false" onAction="#shutdownAppHandler" text="Shutdown App" />
         </buttons>
       </ButtonBar>
-      <Label fx:id="serverStatus" alignment="CENTER" layoutX="96.0" layoutY="39.0" prefHeight="96.0" prefWidth="204.0" text="Server Status" textAlignment="CENTER" />
+      <Label fx:id="serverStatus" alignment="CENTER" layoutX="98.0" layoutY="14.0" prefHeight="30.0" prefWidth="204.0" text="Server Status" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold Italic" size="13.0" />
+         </font></Label>
+      <VBox layoutX="37.0" layoutY="50.0" prefHeight="166.0" prefWidth="334.0">
+         <children>
+            <HBox prefHeight="58.0" prefWidth="334.0">
+               <children>
+                  <VBox prefHeight="58.0" prefWidth="334.0">
+                     <children>
+                        <Label fx:id="serverHostAndPort" alignment="CENTER" prefHeight="22.0" prefWidth="334.0" text="Server's host and port:" textAlignment="CENTER" />
+                        <Label fx:id="remember" prefHeight="38.0" prefWidth="334.0" text="Remember" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <HBox prefHeight="37.0" prefWidth="334.0">
+               <children>
+                  <Label fx:id="host" prefHeight="32.0" prefWidth="122.0" text="Host or IP" />
+                  <TextField fx:id="tfHost" prefHeight="25.0" prefWidth="205.0">
+                     <HBox.margin>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox prefHeight="34.0" prefWidth="334.0">
+               <children>
+                  <Label fx:id="port" prefHeight="34.0" prefWidth="123.0" text="Port" />
+                  <TextField fx:id="tfPort" prefHeight="25.0" prefWidth="70.0">
+                     <HBox.margin>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <Label fx:id="warning" prefHeight="42.0" prefWidth="334.0" text="Warning" textFill="RED" />
+         </children>
+      </VBox>
    </children>
 </AnchorPane>
