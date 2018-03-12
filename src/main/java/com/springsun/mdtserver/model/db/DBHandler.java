@@ -1,6 +1,7 @@
 package com.springsun.mdtserver.model.db;
 
 import com.springsun.mdtserver.controller.Calculator;
+import com.springsun.mdtserver.controller.PasswordUtilities;
 import com.springsun.mdtserver.model.IHandler;
 
 import java.sql.*;
@@ -24,6 +25,7 @@ public class DBHandler implements IHandler {
     private String strSelect;
     private String strInsert;
     private String strUpdate;
+    private final int SALT_LENGTH = 30;
 
     public void setCurrentLatitude(float currentLatitude) {
         this.currentLatitude = currentLatitude;
@@ -73,12 +75,13 @@ public class DBHandler implements IHandler {
                         sqlURL + "/" + nameOfLogPassDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            strSelect = "select login, password from " + tableLogPass + " where login='" + userLogin + "'";
+            strSelect = "select login, password, salt from " + tableLogPass + " where login='" + userLogin + "'";
             //System.out.println("The SQL query is: " + strSelect); // Echo for debugging
             ResultSet resultSet = statement.executeQuery(strSelect);
             if (resultSet.next()){
                 String passwordFromDB = resultSet.getString("password");
-                if (passwordFromDB.equals(userPassword)){
+                String salt = resultSet.getString("salt");
+                if (PasswordUtilities.verifyUserPassword(userPassword, passwordFromDB, salt)){
                     passwordIsCorrect = true;
                 }
             } else {
@@ -95,13 +98,15 @@ public class DBHandler implements IHandler {
     @Override
     public Boolean createNewUser(String login, String password) {
         if (loginExist(login)) return false;
+        String salt = PasswordUtilities.getSalt(SALT_LENGTH);
+        String encodedPassword = PasswordUtilities.generateSecurePassword(password, salt);
         try (
                 Connection connectionToDB = DriverManager.getConnection(
                         sqlURL + "/" + nameOfLogPassDB + "?useSSL=false", usernameDB, passwordDB);
                 Statement statement = connectionToDB.createStatement()
         ){
-            strInsert = "insert into " + tableLogPass + " (id, login, password) values (null, '" +
-                    login + "', '" + password + "')";
+            strInsert = "insert into " + tableLogPass + " (id, login, password, salt) values (null, '" +
+                    login + "', '" + encodedPassword + "', '" + salt + "')";
             //System.out.println("The SQL query is: " + strInsert); // Echo for debugging
             statement.executeUpdate(strInsert);
         } catch (SQLException e){
