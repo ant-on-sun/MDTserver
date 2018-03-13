@@ -53,7 +53,7 @@ public class PasswordUtilities {
         String newSecurePassword = generateSecurePassword(providedPassword, salt);
 
         // Check if two passwords are equal
-        returnValue = newSecurePassword.equals(securedPassword); //IgnoreCase?
+        returnValue = newSecurePassword.equals(securedPassword);
 
         return returnValue;
     }

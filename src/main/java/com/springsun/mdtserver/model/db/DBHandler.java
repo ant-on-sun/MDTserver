@@ -121,7 +121,7 @@ public class DBHandler implements IHandler {
         ){
             strInsert = "insert into " + tableDB + " (id, username, distance_traveled, latitude, longitude) " +
                     "values (null, '" + login + "', 0, -1000, -1000)";
-            System.out.println("The SQL query is: " + strInsert); // Echo for debugging
+            //System.out.println("The SQL query is: " + strInsert); // Echo for debugging
             statement.executeUpdate(strInsert);
         } catch (SQLException e){
             log.log(Level.WARNING, "SQLException in createNewUser(). The SQL query is: " + strInsert
